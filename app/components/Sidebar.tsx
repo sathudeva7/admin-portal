@@ -22,7 +22,7 @@ export default function Sidebar({ activeNav = 'AI Knowledge Base' }: SidebarProp
   const navItems: NavGroup[] = [
     { section: 'Main', items: [
       { icon: '📊', label: 'Dashboard',  href: '/dashboard' },
-      { icon: '📹', label: 'Videos',     href: '#' },
+      { icon: '📹', label: 'Videos',     href: '/videos' },
       { icon: '👥', label: 'Users',      href: '#' },
     ]},
     { section: 'Moderation', items: [
