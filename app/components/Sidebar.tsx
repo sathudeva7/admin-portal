@@ -6,8 +6,20 @@ interface SidebarProps {
   activeNav?: string
 }
 
+interface NavItem {
+  icon: string
+  label: string
+  href: string
+  badge?: number
+}
+
+interface NavGroup {
+  section: string
+  items: NavItem[]
+}
+
 export default function Sidebar({ activeNav = 'AI Knowledge Base' }: SidebarProps) {
-  const navItems = [
+  const navItems: NavGroup[] = [
     { section: 'Main', items: [
       { icon: '📊', label: 'Dashboard',  href: '/dashboard' },
       { icon: '📹', label: 'Videos',     href: '#' },
