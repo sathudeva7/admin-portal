@@ -1,0 +1,115 @@
+.wrapper { display: flex; flex-direction: column; gap: 20px; }
+
+.panel {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.panelHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--cream);
+}
+
+.panelTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  color: var(--teal-dark);
+  font-weight: 700;
+}
+
+.panelSub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.panelBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.promptTextarea {
+  width: 100%;
+  background: #0D1F1F;
+  border-radius: 10px;
+  padding: 16px;
+  font-family: 'DM Mono', monospace, sans-serif;
+  font-size: 12px;
+  color: #A8D8D8;
+  line-height: 1.7;
+  border: 1px solid rgba(27,107,107,0.3);
+  min-height: 500px;
+  resize: vertical;
+  outline: none;
+}
+
+.promptFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.charCount {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.btnGhost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 24px;
+  padding: 5px 13px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+.btnGhost:hover { opacity: 0.8; }
+
+.btnTeal {
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 5px 13px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+.btnTeal:hover { opacity: 0.88; }
+
+.btnGold {
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 5px 13px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+.btnGold:hover { opacity: 0.88; }

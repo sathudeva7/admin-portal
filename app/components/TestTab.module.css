@@ -1,0 +1,86 @@
+.wrapper { display: flex; flex-direction: column; gap: 24px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.panel { background: #fff; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+.panelHeader {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--cream);
+}
+.panelTitle { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: var(--teal-dark); font-weight: 700; }
+.panelBody { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.formGroup { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 11px; color: var(--teal-dark); font-weight: 600; }
+
+.select, .textarea {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.select:focus, .textarea:focus { border-color: var(--teal); background: #fff; }
+.textarea { min-height: 80px; resize: vertical; }
+
+.hint { font-size: 11px; color: var(--muted); }
+
+.resultBox {
+  font-size: 13px;
+  color: var(--text);
+  min-height: 200px;
+  line-height: 1.7;
+}
+
+.metaRow {
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+.badgeTeal { background: var(--teal-pale); color: var(--teal); }
+.badgeGold { background: var(--gold-pale); color: var(--gold); }
+.badgeGreen { background: rgba(76,175,130,0.12); color: var(--success); }
+.badgeMuted { background: var(--cream-dark); color: var(--muted); }
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 20px;
+}
+
+.quickCard {
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: border-color 0.15s;
+}
+.quickCard:hover { border-color: var(--teal); }
+.quickIcon { font-size: 16px; margin-bottom: 6px; }
+.quickText { font-size: 11px; color: var(--text); line-height: 1.5; }
+.quickType { font-size: 9px; color: var(--teal); margin-top: 6px; font-weight: 600; }
+
+.btnTeal {
+  background: var(--teal); color: #fff; border: none;
+  border-radius: 24px; padding: 8px 18px; font-size: 12px;
+  font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+.btnTeal:hover { opacity: 0.88; }

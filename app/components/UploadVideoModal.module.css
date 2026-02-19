@@ -1,0 +1,351 @@
+/* ── Overlay & Modal ─────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 30, 30, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 32px;
+  width: 100%;
+  max-width: 560px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: var(--muted);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.closeBtn:hover {
+  background: var(--cream-dark);
+  color: var(--text);
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.headerIcon {
+  font-size: 32px;
+}
+
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--teal-dark);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── Drop Zone ──────────────────────────────────────────────── */
+.dropZone {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 52px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  background: var(--cream);
+}
+
+.dropZone:hover {
+  background: var(--teal-pale);
+  border-color: var(--teal-light);
+}
+
+.dragging {
+  background: var(--teal-pale);
+  border-color: var(--teal);
+}
+
+.hidden { display: none; }
+
+.dropIcon  { font-size: 44px; }
+
+.dropTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--teal-dark);
+}
+
+.dropSub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── Centered status pane ───────────────────────────────────── */
+.centeredPane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 44px 0;
+  text-align: center;
+}
+
+.paneTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--teal-dark);
+}
+
+.paneSub {
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+.resultIcon { font-size: 48px; }
+
+/* ── Progress ───────────────────────────────────────────────── */
+.progressBar {
+  width: 100%;
+  background: var(--cream-dark);
+  border-radius: 20px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--teal);
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.progressLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+/* ── Spinner ────────────────────────────────────────────────── */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--teal-pale);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Metadata form ──────────────────────────────────────────── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.input {
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--cream);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+
+.input:focus {
+  border-color: var(--teal);
+  background: var(--white);
+}
+
+.textarea {
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--cream);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+
+.textarea:focus {
+  border-color: var(--teal);
+  background: var(--white);
+}
+
+.tagInputRow {
+  display: flex;
+  gap: 8px;
+}
+
+.addTagBtn {
+  background: var(--teal-pale);
+  color: var(--teal);
+  border: 1.5px solid var(--teal-light);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.15s, color 0.15s;
+}
+
+.addTagBtn:hover {
+  background: var(--teal);
+  color: #fff;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gold-pale);
+  color: var(--gold);
+  border: 1px solid rgba(212, 147, 58, 0.25);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tag button {
+  background: transparent;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.1s;
+}
+
+.tag button:hover { opacity: 1; }
+
+.durationBadge {
+  display: inline-block;
+  background: var(--teal-pale);
+  color: var(--teal);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.errorMsg {
+  color: var(--error);
+  font-size: 13px;
+  background: rgba(224, 92, 92, 0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(224, 92, 92, 0.2);
+}
+
+.formActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.cancelBtn {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 10px 22px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.cancelBtn:hover {
+  color: var(--text);
+  border-color: rgba(27, 107, 107, 0.3);
+}
+
+.publishBtn {
+  background: var(--teal-dark);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 26px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+
+.publishBtn:hover:not(:disabled) { opacity: 0.88; }
+
+.publishBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

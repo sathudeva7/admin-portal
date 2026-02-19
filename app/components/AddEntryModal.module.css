@@ -1,0 +1,122 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+.formGroup:last-child { margin-bottom: 0; }
+
+.label {
+  display: block;
+  font-size: 11px;
+  color: var(--teal-dark);
+  font-weight: 600;
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+}
+
+.req { color: var(--error); }
+
+.labelSub {
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.input, .select {
+  width: 100%;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus, .select:focus {
+  border-color: var(--teal);
+  background: #fff;
+}
+
+.textarea {
+  width: 100%;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+  line-height: 1.6;
+  min-height: 140px;
+}
+
+.textarea:focus {
+  border-color: var(--teal);
+  background: #fff;
+}
+
+.hint {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.tagWrap {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  cursor: text;
+  transition: border-color 0.15s;
+}
+
+.tagWrap:focus-within {
+  border-color: var(--teal);
+  background: #fff;
+}
+
+.tag {
+  background: var(--teal-pale);
+  color: var(--teal);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tagRemove {
+  cursor: pointer;
+  color: var(--teal-light);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.tagRemove:hover { color: var(--error); }
+
+.tagInput {
+  border: none;
+  outline: none;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  background: transparent;
+  min-width: 80px;
+  color: var(--text);
+  padding: 2px 0;
+}

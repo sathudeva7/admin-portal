@@ -1,0 +1,580 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── Topbar ─────────────────────────────────────────────────── */
+.topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.pageTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--teal-dark);
+}
+
+.topbarActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btnUpload {
+  background: var(--teal-dark);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+.btnUpload:hover { opacity: 0.88; }
+
+.btnNotif {
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+.btnNotif:hover { opacity: 0.88; }
+
+.btnLive {
+  background: #D95F5F;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+.btnLive:hover { opacity: 0.88; }
+
+.btnLogout {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btnLogout:hover {
+  color: var(--error);
+  border-color: rgba(224, 92, 92, 0.4);
+}
+
+/* ─── Content ────────────────────────────────────────────────── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ─── Stats Row ──────────────────────────────────────────────── */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.statCard {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 22px 24px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(27, 107, 107, 0.05);
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+}
+
+.statValue {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.statWarn {
+  color: var(--error);
+}
+
+.statDelta {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.deltaUp {
+  color: var(--success);
+}
+
+.deltaWarn {
+  color: var(--gold);
+}
+
+/* ─── Quick Actions ──────────────────────────────────────────── */
+.quickActions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.qaUpload,
+.qaNotif,
+.qaLive {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 26px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s, transform 0.15s;
+  font-family: 'DM Sans', sans-serif;
+  color: #fff;
+}
+
+.qaUpload { background: var(--teal-dark); }
+.qaNotif  { background: var(--gold); }
+.qaLive   { background: #D95F5F; }
+
+.qaUpload:hover,
+.qaNotif:hover,
+.qaLive:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.qaIcon {
+  font-size: 30px;
+  flex-shrink: 0;
+}
+
+.qaTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.qaSub {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* ─── Two-column section ─────────────────────────────────────── */
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ─── Panel ──────────────────────────────────────────────────── */
+.panel {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(27, 107, 107, 0.05);
+  padding: 22px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.panelTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pendingBadge {
+  background: rgba(217, 95, 95, 0.1);
+  color: #D95F5F;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(217, 95, 95, 0.2);
+}
+
+.memberCount {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ─── Escalation Queue ───────────────────────────────────────── */
+.escalationList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.escalationItem {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.escalationItem.expanded {
+  border-color: rgba(212, 147, 58, 0.35);
+  background: #FFFDF8;
+}
+
+.escalationHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.escalationInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.escalationName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.escalationMeta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.needsBadge {
+  background: rgba(217, 95, 95, 0.1);
+  color: #D95F5F;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 12px;
+  white-space: nowrap;
+  border: 1px solid rgba(217, 95, 95, 0.2);
+  flex-shrink: 0;
+}
+
+.expandBtn {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.escalationBody {
+  padding: 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.messageQuote {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text);
+  background: var(--cream-dark);
+  border-radius: 8px;
+  padding: 12px 14px;
+  line-height: 1.6;
+}
+
+.guidanceLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.guidanceInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--white);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.guidanceInput:focus {
+  border-color: var(--teal);
+}
+
+.guidanceInput::placeholder {
+  color: var(--muted);
+}
+
+.escalationActions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnSendAI {
+  background: var(--teal-dark);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+.btnSendAI:hover { opacity: 0.88; }
+
+.btnSkip {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btnSkip:hover {
+  color: var(--text);
+  border-color: rgba(27, 107, 107, 0.3);
+}
+
+/* ─── Notification Form ──────────────────────────────────────── */
+.notifForm {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.notifFormLeft {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.formInput {
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--cream);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+
+.formInput:focus {
+  border-color: var(--teal);
+  background: var(--white);
+}
+
+.formTextarea {
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--cream);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+
+.formTextarea:focus {
+  border-color: var(--teal);
+  background: var(--white);
+}
+
+.sendToRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sendToBtn {
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  transition: all 0.15s;
+}
+
+.sendToActive {
+  background: var(--teal);
+  color: #fff;
+  border-color: var(--teal);
+}
+
+.sendToBtn:not(.sendToActive):hover {
+  border-color: var(--teal-light);
+  color: var(--teal);
+}
+
+.btnSendNotif {
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  width: 100%;
+  transition: opacity 0.15s;
+}
+.btnSendNotif:hover { opacity: 0.9; }
+
+/* ─── Phone Preview ──────────────────────────────────────────── */
+.notifPreview {
+  width: 148px;
+  flex-shrink: 0;
+}
+
+.previewLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
+}
+
+.phoneMock {
+  background: #1A1A2E;
+  border-radius: 16px;
+  padding: 16px 12px;
+  min-height: 150px;
+}
+
+.phoneAppName {
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 1.2px;
+  margin-bottom: 10px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.phoneNotif {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.phoneNotifTitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  word-break: break-word;
+  line-height: 1.3;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.phoneNotifBody {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.5;
+  word-break: break-word;
+  font-family: 'DM Sans', sans-serif;
+}
