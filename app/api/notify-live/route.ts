@@ -8,36 +8,56 @@
  *
  * Body: { title: string, sessionId: string }
  *
- * Required env vars (Vercel):
+ * Required env vars (Vercel → Settings → Environment Variables):
  *   FIREBASE_ADMIN_PROJECT_ID
  *   FIREBASE_ADMIN_CLIENT_EMAIL
- *   FIREBASE_ADMIN_PRIVATE_KEY   (the full private key string, newlines as \n)
+ *   FIREBASE_ADMIN_PRIVATE_KEY   (paste the full key; Vercel keeps real newlines)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { initializeApp, getApps, cert } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
 
-// Initialise Admin SDK once (Next.js hot-reloads can call this file multiple times)
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId:   process.env.FIREBASE_ADMIN_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-      // Vercel stores the key with literal \n — replace them back to real newlines
-      privateKey:  process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  })
-}
-
-const db = getFirestore()
+// Tell Next.js this route is always dynamic — never statically analysed at
+// build time. Without this, Next.js tries to execute module-level code during
+// the build when env vars are not yet available, causing the PEM parse error.
+export const dynamic = 'force-dynamic'
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send'
 const BATCH_SIZE    = 100
 
+/**
+ * Lazy singleton — initialises the Admin SDK only on the first real request,
+ * never during the build phase. Handles both storage formats Vercel may use
+ * for the private key (literal \n characters or actual newlines).
+ */
+function getDb() {
+  if (!getApps().length) {
+    const rawKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY
+    if (!rawKey) throw new Error('FIREBASE_ADMIN_PRIVATE_KEY env var is not set')
+
+    // Vercel sometimes stores the key with escaped \n — normalise either way
+    const privateKey = rawKey.includes('\\n')
+      ? rawKey.replace(/\\n/g, '\n')
+      : rawKey
+
+    initializeApp({
+      credential: cert({
+        projectId:   process.env.FIREBASE_ADMIN_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+        privateKey,
+      }),
+    })
+  }
+  return getFirestore()
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { title, sessionId } = await request.json()
+
+    // Initialised here (runtime), not at module level (build time)
+    const db = getDb()
 
     // Admin SDK bypasses Firestore security rules — no auth needed
     const usersSnap = await db.collection('users')
