@@ -7,7 +7,8 @@ import {
   collection, doc, addDoc, updateDoc,
   onSnapshot, query, orderBy, serverTimestamp,
 } from 'firebase/firestore'
-import type AgoraRTCType, { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng'
+import type AgoraRTCType from 'agora-rtc-sdk-ng'
+import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng'
 import { auth, db } from '../lib/firebase'
 import { useAdminAuth } from '../lib/useAdminAuth'
 import styles from './page.module.css'
