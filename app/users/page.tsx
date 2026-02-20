@@ -205,7 +205,20 @@ export default function UsersPage() {
 
           {/* Skeleton loading */}
           {loading && (
-            <div className={styles.tableWrap}>
+            <>
+              <div className={styles.skeletonMobile}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className={styles.skeletonMobileCard}>
+                    <div className={`skeleton ${styles.skeletonCircle}`} />
+                    <div className={styles.skeletonMobileBody}>
+                      <div className={`skeleton ${styles.skeletonLine}`} />
+                      <div className={`skeleton ${styles.skeletonLineShort}`} />
+                      <div className={`skeleton ${styles.skeletonBadge} ${styles.skeletonBadgeSm}`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
                   <tr>
@@ -246,6 +259,7 @@ export default function UsersPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
 
           {/* Empty */}
@@ -258,7 +272,56 @@ export default function UsersPage() {
             </div>
           )}
 
-          {/* Table */}
+          {/* Mobile card list */}
+          {!loading && filtered.length > 0 && (
+            <div className={styles.mobileCardList}>
+              {filtered.map((user) => (
+                <div
+                  key={user.uid}
+                  className={styles.mobileCard}
+                  onClick={() => setSelected(user)}
+                >
+                  <div
+                    className={styles.mobileCardAvatar}
+                    style={{ background: avatarColor(user.displayName ?? '') }}
+                  >
+                    {initials(user.displayName ?? '?')}
+                  </div>
+                  <div className={styles.mobileCardContent}>
+                    <div className={styles.mobileCardName}>{user.displayName}</div>
+                    <div className={styles.mobileCardEmail}>{user.email}</div>
+                    <div className={styles.mobileCardMeta}>
+                      <span className={`${styles.tierBadge} ${user.membershipTier === 'premium' ? styles.premium : styles.free}`}>
+                        {user.membershipTier === 'premium' ? 'Premium' : 'Free'}
+                      </span>
+                      <span className={`${styles.statusPill} ${user.suspended ? styles.statusSuspended : styles.statusActive}`}>
+                        {user.suspended ? 'Suspended' : 'Active'}
+                      </span>
+                      {user.streakCount ? (
+                        <span className={styles.mobileCardStreak}>🔥 {user.streakCount}</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className={styles.mobileCardActions} onClick={(e) => e.stopPropagation()}>
+                    <button
+                      className={user.suspended ? styles.btnUnsuspendSm : styles.btnSuspendSm}
+                      onClick={() => handleToggleSuspend(user)}
+                    >
+                      {user.suspended ? 'Unsuspend' : 'Suspend'}
+                    </button>
+                    <button
+                      className={styles.btnDeleteSm}
+                      onClick={() => setConfirmDelete(user)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Table (desktop) */}
           {!loading && filtered.length > 0 && (
             <div className={styles.tableWrap}>
               <table className={styles.table}>

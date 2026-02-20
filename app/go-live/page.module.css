@@ -476,11 +476,19 @@
 }
 .btnEndSession:hover { opacity: 0.88; }
 
+/* ─── Consultation panel ─────────────────────────────────────── */
+.consultPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid rgba(212, 147, 58, 0.35);
+}
+
 /* Consultation banner */
 .consultBanner {
   background: var(--gold-pale);
-  border: 1.5px solid rgba(212, 147, 58, 0.35);
-  border-radius: 12px;
   padding: 14px 18px;
   display: flex;
   justify-content: space-between;
@@ -531,6 +539,71 @@
   white-space: nowrap;
 }
 .btnEndConsult:hover { opacity: 0.88; }
+
+.consultRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.consultTimer {
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+  font-family: 'DM Sans', sans-serif;
+  min-width: 52px;
+  text-align: right;
+}
+
+.consultTimerUrgent {
+  color: var(--error);
+  animation: pulse 0.8s infinite;
+}
+
+/* Remote video area (app user's camera during consultation) */
+.consultVideoRow {
+  background: #0D1117;
+  height: 180px;
+}
+
+.consultVideoBox {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.consultRemoteVideo {
+  width: 100%;
+  height: 100%;
+}
+
+.consultVideoPlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.consultVideoLabel {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+}
 
 /* ─── Waiting Room Column ────────────────────────────────────── */
 .waitingCol {

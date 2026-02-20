@@ -113,10 +113,18 @@ export default function AdminManagementPage() {
         lastLoginAt: null,
       })
 
+      // Send invite email (non-blocking — don't fail admin creation if email fails)
+      const loginUrl = `${window.location.origin}/login`
+      fetch('/api/send-admin-invite', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole, loginUrl }),
+      }).catch((err) => console.warn('[invite email]', err))
+
       setShowModal(false)
       setNewName(''); setNewEmail(''); setNewPassword(''); setNewRole('moderator')
       await fetchAdmins()
-      showToast(`${newName} added as ${ROLE_OPTIONS.find(r => r.value === newRole)?.label}`)
+      showToast(`${newName} added — invite email sent`)
     } catch (err: unknown) {
       const code = (err as { code?: string }).code
       if (code === 'auth/email-already-in-use') {
@@ -192,7 +200,20 @@ export default function AdminManagementPage() {
 
           {/* Admin table */}
           {loading ? (
-            <div className={styles.tableWrap}>
+            <>
+              <div className={styles.mobileCardList}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className={styles.skeletonAdminCard}>
+                    <div className={`skeleton ${styles.skeletonAvatar}`} />
+                    <div className={styles.skeletonAdminBody}>
+                      <div className={`skeleton ${styles.skeletonName}`} />
+                      <div className={`skeleton ${styles.skeletonEmail}`} />
+                      <div className={`skeleton ${styles.skeletonRole} ${styles.skeletonRoleMt}`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
                   <tr>
@@ -223,8 +244,66 @@ export default function AdminManagementPage() {
                 </tbody>
               </table>
             </div>
+            </>
           ) : (
-            <div className={styles.tableWrap}>
+            <>
+              <div className={styles.mobileCardList}>
+                {admins.map((admin) => {
+                  const isSelf = admin.uid === currentUid
+                  return (
+                    <div key={admin.uid} className={styles.adminCard}>
+                      <div
+                        className={styles.avatar}
+                        style={{ background: ROLE_COLORS[admin.role] }}
+                      >
+                        {admin.displayName?.charAt(0).toUpperCase() ?? '?'}
+                      </div>
+                      <div className={styles.adminCardContent}>
+                        <div className={styles.adminCardName}>
+                          {admin.displayName}
+                          {isSelf && <span className={styles.youBadge}>You</span>}
+                        </div>
+                        <div className={styles.adminCardEmail}>{admin.email}</div>
+                        <div className={styles.adminCardMeta}>
+                          <span className={styles.meta}>{formatDate(admin.createdAt)}</span>
+                          <span className={styles.meta}>·</span>
+                          <span className={styles.meta}>{formatDate(admin.lastLoginAt)}</span>
+                        </div>
+                        <div className={styles.adminCardActions}>
+                          {isSelf ? (
+                            <span
+                              className={styles.rolePill}
+                              style={{ background: ROLE_COLORS[admin.role] + '22', color: ROLE_COLORS[admin.role] }}
+                            >
+                              {ROLE_OPTIONS.find((r) => r.value === admin.role)?.label}
+                            </span>
+                          ) : (
+                            <select
+                              className={styles.roleSelect}
+                              value={admin.role}
+                              onChange={(e) => handleRoleChange(admin, e.target.value as AdminRole)}
+                              style={{ borderColor: ROLE_COLORS[admin.role] + '66', color: ROLE_COLORS[admin.role] }}
+                            >
+                              {ROLE_OPTIONS.map((r) => (
+                                <option key={r.value} value={r.value}>{r.label}</option>
+                              ))}
+                            </select>
+                          )}
+                          {!isSelf && (
+                            <button
+                              className={styles.btnRemove}
+                              onClick={() => setConfirmDelete(admin)}
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
                   <tr>
@@ -301,6 +380,7 @@ export default function AdminManagementPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       </main>

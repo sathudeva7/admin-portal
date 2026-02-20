@@ -5,6 +5,12 @@
   margin-bottom: 16px;
 }
 
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .formGroup {
   margin-bottom: 16px;
 }

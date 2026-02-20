@@ -1,0 +1,55 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobileMenuBtn {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.mobileMenuBtn:hover {
+  background: var(--cream);
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 98;
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding-top: 60px;
+  }
+
+  .mobileMenuBtn {
+    display: flex;
+  }
+
+  .overlay {
+    display: block;
+  }
+}

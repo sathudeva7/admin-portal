@@ -129,3 +129,22 @@
   transition: opacity 0.15s;
 }
 .btnGold:hover { opacity: 0.88; }
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHeader {
+    padding: 14px 16px;
+  }
+
+  .panelBody {
+    padding: 16px;
+  }
+
+  .toggleRow {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

@@ -497,3 +497,187 @@
   from { opacity: 0; transform: translateX(-50%) translateY(8px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+/* ─── Mobile card list ────────────────────────────────────────── */
+.mobileCardList {
+  display: none;
+}
+
+.adminCard {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.adminCard:last-child { margin-bottom: 0; }
+
+.adminCardContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.adminCardName {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.adminCardEmail {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.adminCardMeta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.adminCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.adminCardActions .roleSelect {
+  min-width: 100px;
+}
+
+.skeletonAdminCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+.skeletonAdminCard:last-child { margin-bottom: 0; }
+
+.skeletonAdminBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.skeletonAdminBody .skeletonRoleMt {
+  margin-top: 8px;
+}
+
+/* ─── Mobile responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .mobileCardList {
+    display: block;
+  }
+
+  .tableWrap {
+    display: none;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px 14px 60px;
+  }
+
+  .topbarRight {
+    flex-direction: column;
+  }
+
+  .btnAdd,
+  .btnLogout {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .roleLegend {
+    gap: 10px;
+  }
+
+  .legendItem {
+    min-width: 0;
+  }
+
+  .overlay {
+    padding: 16px;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .modal {
+    margin: auto 0;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+
+  .modalHeader {
+    padding: 16px 18px 0;
+  }
+
+  .modalTitle {
+    font-size: 18px;
+  }
+
+  .form {
+    padding: 16px 18px 20px;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .btnCancel,
+  .btnSave {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .confirmModal {
+    padding: 24px 20px 20px;
+  }
+
+  .confirmModal .modalActions {
+    flex-direction: column;
+  }
+
+  .confirmModal .btnCancel,
+  .confirmModal .btnDanger {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    transform: none;
+    text-align: center;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 22px;
+  }
+
+  .pageSub {
+    font-size: 12px;
+  }
+}

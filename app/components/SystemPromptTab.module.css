@@ -113,3 +113,25 @@
   transition: opacity 0.15s;
 }
 .btnGold:hover { opacity: 0.88; }
+
+@media (max-width: 768px) {
+  .panelHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .panelBody {
+    padding: 16px;
+  }
+
+  .promptTextarea {
+    min-height: 300px;
+  }
+
+  .promptFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+}

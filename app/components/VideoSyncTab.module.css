@@ -150,3 +150,30 @@
   transition: opacity 0.15s;
 }
 .btnTeal:hover { opacity: 0.88; }
+
+@media (max-width: 768px) {
+  .panelHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .panelBody {
+    padding: 16px;
+  }
+
+  .syncItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .uploadZone {
+    padding: 20px 16px;
+  }
+
+  .toggleRow {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}

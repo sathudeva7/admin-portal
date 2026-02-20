@@ -8,7 +8,7 @@ import {
   onSnapshot, query, orderBy, serverTimestamp,
 } from 'firebase/firestore'
 import type AgoraRTCType from 'agora-rtc-sdk-ng'
-import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng'
+import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IRemoteVideoTrack } from 'agora-rtc-sdk-ng'
 import { auth, db } from '../lib/firebase'
 import { useAdminAuth } from '../lib/useAdminAuth'
 import styles from './page.module.css'
@@ -24,7 +24,8 @@ async function loadAgoraRTC(): Promise<typeof AgoraRTCType> {
   return _AgoraRTC
 }
 
-const AGORA_APP_ID = process.env.NEXT_PUBLIC_AGORA_APP_ID!
+const AGORA_APP_ID      = process.env.NEXT_PUBLIC_AGORA_APP_ID!
+const CONSULT_DURATION_S = 5 * 60  // 5 minutes
 
 type Phase = 'setup' | 'preview' | 'live' | 'ending'
 
@@ -57,8 +58,8 @@ export default function GoLivePage() {
   const { ready } = useAdminAuth()
 
   // Phase + session
-  const [phase, setPhase]         = useState<Phase>('setup')
-  const [title, setTitle]         = useState('Rabbi Landau — Live Teaching')
+  const [phase, setPhase]             = useState<Phase>('setup')
+  const [title, setTitle]             = useState('Rabbi Landau — Live Teaching')
   const [channelName, setChannelName] = useState(`rivnitz-live-${Date.now()}`)
 
   // Live stats
@@ -66,8 +67,12 @@ export default function GoLivePage() {
   const [elapsed, setElapsed]         = useState(0)
 
   // Waiting room
-  const [waitingRoom, setWaitingRoom]         = useState<WaitingEntry[]>([])
-  const [currentConsult, setCurrentConsult]   = useState<WaitingEntry | null>(null)
+  const [waitingRoom, setWaitingRoom]       = useState<WaitingEntry[]>([])
+  const [currentConsult, setCurrentConsult] = useState<WaitingEntry | null>(null)
+
+  // Consultation
+  const [consultTimeLeft, setConsultTimeLeft]     = useState(CONSULT_DURATION_S)
+  const [consultRemoteUid, setConsultRemoteUid]   = useState<number | null>(null)
 
   // UI
   const [toast, setToast]                   = useState('')
@@ -76,12 +81,21 @@ export default function GoLivePage() {
   const [micMuted, setMicMuted]             = useState(false)
   const [camOff, setCamOff]                 = useState(false)
 
-  // Agora refs
-  const clientRef     = useRef<IAgoraRTCClient | null>(null)
-  const videoRef      = useRef<ICameraVideoTrack | null>(null)
-  const audioRef      = useRef<IMicrophoneAudioTrack | null>(null)
-  const sessionIdRef  = useRef<string | null>(null)
+  // Agora refs — main broadcast
+  const clientRef       = useRef<IAgoraRTCClient | null>(null)
+  const videoRef        = useRef<ICameraVideoTrack | null>(null)
+  const audioRef        = useRef<IMicrophoneAudioTrack | null>(null)
+  const sessionIdRef    = useRef<string | null>(null)
   const waitingUnsubRef = useRef<(() => void) | null>(null)
+
+  // Agora refs — private consultation
+  const consultClientRef           = useRef<IAgoraRTCClient | null>(null)
+  const consultTimerRef            = useRef<ReturnType<typeof setInterval> | null>(null)
+  const currentConsultRef          = useRef<WaitingEntry | null>(null)
+  const consultRemoteVideoTrackRef = useRef<IRemoteVideoTrack | null>(null)
+
+  // Keep currentConsultRef in sync — avoids stale closure in the countdown timer
+  useEffect(() => { currentConsultRef.current = currentConsult }, [currentConsult])
 
   // ── Elapsed timer while live ──────────────────────────────────
   useEffect(() => {
@@ -90,7 +104,7 @@ export default function GoLivePage() {
     return () => clearInterval(t)
   }, [phase])
 
-  // ── Play video AFTER the correct container is in the DOM ───────
+  // ── Play local video AFTER the correct container is in the DOM ─
   useEffect(() => {
     if (phase === 'preview') {
       const raf = requestAnimationFrame(() => {
@@ -106,10 +120,21 @@ export default function GoLivePage() {
     }
   }, [phase])
 
-  // ── Cleanup Agora on unmount ──────────────────────────────────
+  // ── Play consultation remote video once the container div is rendered ──
+  useEffect(() => {
+    if (consultRemoteUid === null || !consultRemoteVideoTrackRef.current) return
+    const raf = requestAnimationFrame(() => {
+      consultRemoteVideoTrackRef.current?.play('consult-remote-container')
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [consultRemoteUid])
+
+  // ── Cleanup everything on unmount ────────────────────────────
   useEffect(() => {
     return () => {
       waitingUnsubRef.current?.()
+      if (consultTimerRef.current) clearInterval(consultTimerRef.current)
+      consultClientRef.current?.leave()
       videoRef.current?.stop(); videoRef.current?.close()
       audioRef.current?.stop(); audioRef.current?.close()
       clientRef.current?.leave()
@@ -118,7 +143,7 @@ export default function GoLivePage() {
 
   const showToast = useCallback((msg: string) => {
     setToast(msg)
-    setTimeout(() => setToast(''), 3000)
+    setTimeout(() => setToast(''), 3500)
   }, [])
 
   if (!ready) return null
@@ -131,7 +156,6 @@ export default function GoLivePage() {
       const AgoraRTC = await loadAgoraRTC()
       const track = await AgoraRTC.createCameraVideoTrack({ encoderConfig: '720p' })
       videoRef.current = track
-      // video rendered into #preview-container by the useEffect after phase change
       setPhase('preview')
     } catch (err) {
       console.error(err)
@@ -151,7 +175,7 @@ export default function GoLivePage() {
   const goLive = async () => {
     setError('')
     try {
-      // ── 1. Fetch a temporary RTC token from our API route ──────
+      // 1. Fetch RTC token for the main channel
       const hostUid = 1
       const tokenRes = await fetch(
         `/api/agora-token?channel=${encodeURIComponent(channelName)}&uid=${hostUid}`
@@ -162,7 +186,7 @@ export default function GoLivePage() {
       }
       const { token } = await tokenRes.json()
 
-      // ── 2. Set up Agora client ─────────────────────────────────
+      // 2. Set up Agora client (live-broadcasting mode, Rabbi is host)
       const AgoraRTC = await loadAgoraRTC()
       const client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' })
       clientRef.current = client
@@ -171,19 +195,13 @@ export default function GoLivePage() {
       client.on('user-joined', () => setViewerCount((c) => c + 1))
       client.on('user-left',   () => setViewerCount((c) => Math.max(0, c - 1)))
 
-      // ── 3. Join channel with generated token ───────────────────
+      // 3. Join + publish
       await client.join(AGORA_APP_ID, channelName, token, hostUid)
-
-      // ── 4. Publish audio + video tracks ───────────────────────
       const audioTrack = await AgoraRTC.createMicrophoneAudioTrack()
       audioRef.current = audioTrack
+      await client.publish([audioTrack, videoRef.current!])
 
-      const videoTrack = videoRef.current!
-      await client.publish([audioTrack, videoTrack])
-      // video is rendered into #live-container by the useEffect below
-      // (runs after setPhase('live') causes the div to appear in the DOM)
-
-      // ── 5. Save session to Firestore ───────────────────────────
+      // 4. Save session to Firestore
       const sessionRef = await addDoc(collection(db, 'live_sessions'), {
         title,
         status:         'live',
@@ -191,13 +209,23 @@ export default function GoLivePage() {
         hostUid,
         startedAt:      serverTimestamp(),
         agoraChannel:   channelName,
-        agoraToken:     token,        // mobile app uses this to join as audience
+        agoraToken:     token,
         inConsultation: false,
         createdAt:      serverTimestamp(),
       })
       sessionIdRef.current = sessionRef.id
 
-      // ── 6. Subscribe to waiting room in real time ──────────────
+      // 5. Push notifications
+      fetch('/api/notify-live', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ title, sessionId: sessionRef.id }),
+      })
+        .then(res => res.json())
+        .then(data => console.log('[notify-live]', data))
+        .catch(err => console.warn('[notify-live] failed (non-critical):', err))
+
+      // 6. Subscribe to waiting room
       const q = query(
         collection(db, 'live_sessions', sessionRef.id, 'waitingRoom'),
         orderBy('joinedAt', 'asc')
@@ -205,7 +233,9 @@ export default function GoLivePage() {
       waitingUnsubRef.current = onSnapshot(q, (snap) => {
         const entries = snap.docs.map((d) => ({ id: d.id, ...d.data() } as WaitingEntry))
         setWaitingRoom(entries.filter((e) => e.status !== 'left'))
-        setCurrentConsult(entries.find((e) => e.status === 'in-session') ?? null)
+        const inSession = entries.find((e) => e.status === 'in-session') ?? null
+        setCurrentConsult(inSession)
+        currentConsultRef.current = inSession   // keep ref in sync for timer
       })
 
       setPhase('live')
@@ -221,28 +251,119 @@ export default function GoLivePage() {
   const admitUser = async (entry: WaitingEntry) => {
     const sid = sessionIdRef.current
     if (!sid) return
-    // Finish any current consultation
-    if (currentConsult) {
-      await updateDoc(
-        doc(db, 'live_sessions', sid, 'waitingRoom', currentConsult.id),
-        { status: 'done' }
+
+    // End any existing consultation first
+    if (currentConsultRef.current) await endConsultation()
+
+    try {
+      const AgoraRTC = await loadAgoraRTC()
+
+      // 1. Unpublish from main channel — viewers see "Rabbi is in consultation"
+      if (clientRef.current && audioRef.current && videoRef.current) {
+        await clientRef.current.unpublish([audioRef.current, videoRef.current])
+      }
+
+      // 2. Fetch a token for the private channel
+      const privateChannel = `${channelName}-pvt`
+      const consultUid     = 2   // Rabbi's UID in the private channel
+      const tokenRes = await fetch(
+        `/api/agora-token?channel=${encodeURIComponent(privateChannel)}&uid=${consultUid}`
       )
+      const { token: consultToken } = await tokenRes.json()
+
+      // 3. Create a second Agora client (RTC mode — both sides are broadcasters)
+      const consultClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' })
+      consultClientRef.current = consultClient
+
+      // 4. Listen for the app user publishing their camera
+      consultClient.on('user-published', async (user, mediaType) => {
+        await consultClient.subscribe(user, mediaType)
+        if (mediaType === 'video') {
+          consultRemoteVideoTrackRef.current = user.videoTrack ?? null
+          setConsultRemoteUid(user.uid as number)
+          // Video is played into #consult-remote-container by the useEffect
+        }
+      })
+      consultClient.on('user-unpublished', (_user, mediaType) => {
+        if (mediaType === 'video') {
+          consultRemoteVideoTrackRef.current = null
+          setConsultRemoteUid(null)
+        }
+      })
+
+      // 5. Join private channel and publish Rabbi's tracks
+      await consultClient.join(AGORA_APP_ID, privateChannel, consultToken, consultUid)
+      if (audioRef.current && videoRef.current) {
+        await consultClient.publish([audioRef.current, videoRef.current])
+      }
+
+      // 6. Start 5-minute countdown
+      setConsultTimeLeft(CONSULT_DURATION_S)
+      consultTimerRef.current = setInterval(() => {
+        setConsultTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(consultTimerRef.current!)
+            consultTimerRef.current = null
+            endConsultation()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      // 7. Update Firestore
+      await updateDoc(doc(db, 'live_sessions', sid, 'waitingRoom', entry.id), { status: 'in-session' })
+      await updateDoc(doc(db, 'live_sessions', sid), { inConsultation: true })
+
+      showToast(`${entry.userName} admitted — private consultation started`)
+    } catch (err) {
+      console.error('[admitUser]', err)
+      // On failure: republish to main so broadcast continues
+      if (clientRef.current && audioRef.current && videoRef.current) {
+        await clientRef.current.publish([audioRef.current, videoRef.current]).catch(() => {})
+      }
+      if (consultClientRef.current) {
+        await consultClientRef.current.leave().catch(() => {})
+        consultClientRef.current = null
+      }
+      showToast('Failed to start consultation')
     }
-    await updateDoc(doc(db, 'live_sessions', sid, 'waitingRoom', entry.id), { status: 'in-session' })
-    await updateDoc(doc(db, 'live_sessions', sid), { inConsultation: true })
-    showToast(`Admitted ${entry.userName} to consultation`)
   }
 
-  // ── End current consultation ──────────────────────────────────
+  // ── End current consultation & resume broadcast ───────────────
   const endConsultation = async () => {
     const sid = sessionIdRef.current
-    if (!sid || !currentConsult) return
-    await updateDoc(
-      doc(db, 'live_sessions', sid, 'waitingRoom', currentConsult.id),
-      { status: 'done' }
-    )
+    const cc  = currentConsultRef.current
+    if (!sid || !cc) return
+
+    // Clear countdown timer
+    if (consultTimerRef.current) {
+      clearInterval(consultTimerRef.current)
+      consultTimerRef.current = null
+    }
+
+    // Leave private channel
+    if (consultClientRef.current) {
+      await consultClientRef.current.leave().catch(() => {})
+      consultClientRef.current = null
+    }
+
+    consultRemoteVideoTrackRef.current = null
+    setConsultRemoteUid(null)
+    setConsultTimeLeft(CONSULT_DURATION_S)
+
+    // Re-publish to main broadcast so viewers can see Rabbi again
+    if (clientRef.current && audioRef.current && videoRef.current) {
+      await clientRef.current.publish([audioRef.current, videoRef.current]).catch(e =>
+        console.error('[endConsultation] republish error:', e)
+      )
+    }
+
+    // Update Firestore
+    await updateDoc(doc(db, 'live_sessions', sid, 'waitingRoom', cc.id), { status: 'done' })
     await updateDoc(doc(db, 'live_sessions', sid), { inConsultation: false })
-    showToast('Consultation ended')
+
+    showToast('Consultation ended — broadcast resumed')
   }
 
   // ── Toggle mic ────────────────────────────────────────────────
@@ -264,6 +385,16 @@ export default function GoLivePage() {
     setPhase('ending')
     waitingUnsubRef.current?.(); waitingUnsubRef.current = null
 
+    // End consultation Agora client if active
+    if (consultTimerRef.current) {
+      clearInterval(consultTimerRef.current)
+      consultTimerRef.current = null
+    }
+    if (consultClientRef.current) {
+      await consultClientRef.current.leave().catch(() => {})
+      consultClientRef.current = null
+    }
+
     if (sessionIdRef.current) {
       await updateDoc(doc(db, 'live_sessions', sessionIdRef.current), { status: 'ended' })
     }
@@ -276,6 +407,7 @@ export default function GoLivePage() {
     setElapsed(0); setViewerCount(0)
     setWaitingRoom([]); setCurrentConsult(null)
     setMicMuted(false); setCamOff(false)
+    setConsultRemoteUid(null); setConsultTimeLeft(CONSULT_DURATION_S)
     setChannelName(`rivnitz-live-${Date.now()}`)
     setPhase('setup')
     showToast('Session ended')
@@ -293,261 +425,283 @@ export default function GoLivePage() {
   // ── Render ────────────────────────────────────────────────────
   return (
     <main className={styles.main}>
-        {/* Topbar */}
-        <div className={styles.topbar}>
-          <div>
-            <h1 className={styles.pageTitle}>📺 Go Live</h1>
-            <p className={styles.pageSub}>Broadcast live to your community via Agora</p>
-          </div>
-          <div className={styles.topbarRight}>
-            {phase === 'live' && (
-              <div className={styles.livePill}>
-                <span className={styles.liveDot} />
-                LIVE · {formatDuration(elapsed)}
-              </div>
-            )}
-            <button className={styles.btnLogout} onClick={handleLogout}>Sign Out</button>
-          </div>
+      {/* Topbar */}
+      <div className={styles.topbar}>
+        <div>
+          <h1 className={styles.pageTitle}>📺 Go Live</h1>
+          <p className={styles.pageSub}>Broadcast live to your community via Agora</p>
         </div>
-
-        <div className={styles.content}>
-
-          {/* ── SETUP phase ─────────────────────────────────── */}
-          {(phase === 'setup' || phase === 'preview') && (
-            <div className={styles.setupLayout}>
-              <div className={styles.setupCard}>
-                <h2 className={styles.setupTitle}>
-                  {phase === 'preview' ? '📹 Preview — Ready to go?' : '🎙 Set Up Your Broadcast'}
-                </h2>
-                <p className={styles.setupSub}>
-                  {phase === 'preview'
-                    ? 'Check your camera and audio, then go live when ready.'
-                    : 'Enter a session title and test your camera before going live.'}
-                </p>
-
-                {/* Video preview box */}
-                <div className={styles.previewBox}>
-                  <div id="preview-container" className={styles.previewVideo} />
-                  {phase === 'setup' && (
-                    <div className={styles.previewEmpty}>
-                      <span className={styles.previewEmptyIcon}>🎥</span>
-                      <p>Camera preview appears here</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Session config */}
-                <div className={styles.configGrid}>
-                  <div className={styles.configField}>
-                    <label className={styles.configLabel}>Session Title</label>
-                    <input
-                      className={styles.configInput}
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="e.g. Weekly Teaching — Parsha Discussion"
-                      disabled={phase === 'preview'}
-                    />
-                  </div>
-                  <div className={styles.configField}>
-                    <label className={styles.configLabel}>Agora Channel</label>
-                    <input
-                      className={styles.configInput}
-                      value={channelName}
-                      onChange={(e) => setChannelName(e.target.value)}
-                      placeholder="e.g. rivnitz-live"
-                      disabled={phase === 'preview'}
-                    />
-                  </div>
-                </div>
-
-                {error && <p className={styles.errorMsg}>{error}</p>}
-
-                <div className={styles.setupActions}>
-                  {phase === 'setup' && (
-                    <button
-                      className={styles.btnTestCam}
-                      onClick={startPreview}
-                      disabled={previewLoading || !title.trim() || !channelName.trim()}
-                    >
-                      {previewLoading ? 'Starting camera…' : '📷 Test Camera'}
-                    </button>
-                  )}
-                  {phase === 'preview' && (
-                    <>
-                      <button className={styles.btnBack} onClick={stopPreview}>← Back</button>
-                      <button className={styles.btnGoLive} onClick={goLive}>🔴 Go Live Now</button>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Info panel */}
-              <div className={styles.infoPanel}>
-                <h3 className={styles.infoPanelTitle}>How it works</h3>
-                <div className={styles.infoSteps}>
-                  {[
-                    ['1', 'Set a session title and test your camera', '🎥'],
-                    ['2', 'Click Go Live — a Firestore session is created and Agora broadcast starts', '🔴'],
-                    ['3', 'Members join from the app and see your stream', '👥'],
-                    ['4', 'Members can join the waiting room for a private consultation', '🕊'],
-                    ['5', 'Admit members one by one for a private 2-way video call', '🤝'],
-                    ['6', 'End the session when you\'re done', '✓'],
-                  ].map(([num, text, icon]) => (
-                    <div key={num} className={styles.infoStep}>
-                      <div className={styles.infoStepNum}>{num}</div>
-                      <div>
-                        <span className={styles.infoStepIcon}>{icon}</span>
-                        <span className={styles.infoStepText}>{text}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        <div className={styles.topbarRight}>
+          {phase === 'live' && (
+            <div className={styles.livePill}>
+              <span className={styles.liveDot} />
+              {currentConsult ? '🤝 CONSULT' : 'LIVE'} · {formatDuration(elapsed)}
             </div>
           )}
+          <button className={styles.btnLogout} onClick={handleLogout}>Sign Out</button>
+        </div>
+      </div>
 
-          {/* ── LIVE phase ──────────────────────────────────── */}
-          {phase === 'live' && (
-            <div className={styles.liveLayout}>
+      <div className={styles.content}>
 
-              {/* Left: video + controls */}
-              <div className={styles.videoCol}>
-                {/* Video area */}
-                <div className={styles.videoWrapper}>
-                  <div id="live-container" className={styles.liveVideo} />
-                  <div className={styles.videoTopLeft}>
-                    <span className={styles.liveTag}>● LIVE</span>
-                    <span className={styles.elapsedTag}>{formatDuration(elapsed)}</span>
-                  </div>
-                  <div className={styles.videoBottomRight}>
-                    <span className={styles.viewerTag}>👁 {viewerCount}</span>
-                  </div>
-                  {camOff && (
-                    <div className={styles.camOffOverlay}>
-                      <span>📷 Camera paused</span>
-                    </div>
-                  )}
-                </div>
+        {/* ── SETUP phase ─────────────────────────────────── */}
+        {(phase === 'setup' || phase === 'preview') && (
+          <div className={styles.setupLayout}>
+            <div className={styles.setupCard}>
+              <h2 className={styles.setupTitle}>
+                {phase === 'preview' ? '📹 Preview — Ready to go?' : '🎙 Set Up Your Broadcast'}
+              </h2>
+              <p className={styles.setupSub}>
+                {phase === 'preview'
+                  ? 'Check your camera and audio, then go live when ready.'
+                  : 'Enter a session title and test your camera before going live.'}
+              </p>
 
-                {/* Broadcast info */}
-                <div className={styles.broadcastMeta}>
-                  <div className={styles.broadcastTitle}>{title}</div>
-                  <div className={styles.broadcastChannel}>📡 {channelName}</div>
-                </div>
-
-                {/* Controls row */}
-                <div className={styles.controls}>
-                  <button
-                    className={`${styles.controlBtn} ${micMuted ? styles.controlBtnOff : ''}`}
-                    onClick={toggleMic}
-                  >
-                    {micMuted ? '🔇 Unmute' : '🎙 Mute'}
-                  </button>
-                  <button
-                    className={`${styles.controlBtn} ${camOff ? styles.controlBtnOff : ''}`}
-                    onClick={toggleCam}
-                  >
-                    {camOff ? '📷 Resume Cam' : '📹 Pause Cam'}
-                  </button>
-                  <button className={styles.btnEndSession} onClick={endSession}>
-                    ■ End Session
-                  </button>
-                </div>
-
-                {/* Consultation banner */}
-                {currentConsult && (
-                  <div className={styles.consultBanner}>
-                    <div className={styles.consultLeft}>
-                      <span className={styles.consultDot} />
-                      <div>
-                        <div className={styles.consultLabel}>Private consultation active</div>
-                        <div className={styles.consultName}>{currentConsult.userName}</div>
-                      </div>
-                    </div>
-                    <button className={styles.btnEndConsult} onClick={endConsultation}>
-                      End Consultation
-                    </button>
+              <div className={styles.previewBox}>
+                <div id="preview-container" className={styles.previewVideo} />
+                {phase === 'setup' && (
+                  <div className={styles.previewEmpty}>
+                    <span className={styles.previewEmptyIcon}>🎥</span>
+                    <p>Camera preview appears here</p>
                   </div>
                 )}
               </div>
 
-              {/* Right: waiting room */}
-              <div className={styles.waitingCol}>
-                <div className={styles.waitingCard}>
-                  <div className={styles.waitingHeader}>
-                    <span className={styles.waitingTitle}>👥 Waiting Room</span>
-                    <span className={styles.waitingBadge}>{waitingUsers.length}</span>
-                  </div>
-
-                  {waitingRoom.length === 0 ? (
-                    <div className={styles.emptyWaiting}>
-                      <span className={styles.emptyIcon}>🕊</span>
-                      <p>No one in the queue yet</p>
-                      <p className={styles.emptySub}>Members can join from the mobile app</p>
-                    </div>
-                  ) : (
-                    <div className={styles.waitingList}>
-                      {waitingRoom.map((entry, idx) => (
-                        <div
-                          key={entry.id}
-                          className={`${styles.waitingEntry}
-                            ${entry.status === 'in-session' ? styles.entryInSession : ''}
-                            ${entry.status === 'done'       ? styles.entryDone       : ''}
-                          `}
-                        >
-                          <div className={styles.entryLeft}>
-                            <div className={styles.entryPos}>{idx + 1}</div>
-                            <div>
-                              <div className={styles.entryName}>{entry.userName}</div>
-                              <div className={styles.entryMeta}>
-                                Joined {timeAgo(entry.joinedAt)}
-                              </div>
-                            </div>
-                          </div>
-                          <div className={styles.entryRight}>
-                            {entry.status === 'waiting' && (
-                              <button
-                                className={styles.btnAdmit}
-                                onClick={() => admitUser(entry)}
-                              >
-                                Admit
-                              </button>
-                            )}
-                            {entry.status === 'in-session' && (
-                              <span className={styles.inSessionTag}>● In session</span>
-                            )}
-                            {entry.status === 'done' && (
-                              <span className={styles.doneTag}>✓ Done</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {doneUsers.length > 0 && (
-                    <div className={styles.waitingFooter}>
-                      {doneUsers.length} consultation{doneUsers.length > 1 ? 's' : ''} completed today
-                    </div>
-                  )}
+              <div className={styles.configGrid}>
+                <div className={styles.configField}>
+                  <label className={styles.configLabel}>Session Title</label>
+                  <input
+                    className={styles.configInput}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Weekly Teaching — Parsha Discussion"
+                    disabled={phase === 'preview'}
+                  />
+                </div>
+                <div className={styles.configField}>
+                  <label className={styles.configLabel}>Agora Channel</label>
+                  <input
+                    className={styles.configInput}
+                    value={channelName}
+                    onChange={(e) => setChannelName(e.target.value)}
+                    placeholder="e.g. rivnitz-live"
+                    disabled={phase === 'preview'}
+                  />
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* ── ENDING phase ────────────────────────────────── */}
-          {phase === 'ending' && (
-            <div className={styles.endingView}>
-              <div className={styles.endingCard}>
-                <div className={styles.endingSpinner} />
-                <p className={styles.endingText}>Ending session…</p>
+              {error && <p className={styles.errorMsg}>{error}</p>}
+
+              <div className={styles.setupActions}>
+                {phase === 'setup' && (
+                  <button
+                    className={styles.btnTestCam}
+                    onClick={startPreview}
+                    disabled={previewLoading || !title.trim() || !channelName.trim()}
+                  >
+                    {previewLoading ? 'Starting camera…' : '📷 Test Camera'}
+                  </button>
+                )}
+                {phase === 'preview' && (
+                  <>
+                    <button className={styles.btnBack} onClick={stopPreview}>← Back</button>
+                    <button className={styles.btnGoLive} onClick={goLive}>🔴 Go Live Now</button>
+                  </>
+                )}
               </div>
             </div>
-          )}
 
-        </div>
+            <div className={styles.infoPanel}>
+              <h3 className={styles.infoPanelTitle}>How it works</h3>
+              <div className={styles.infoSteps}>
+                {[
+                  ['1', 'Set a session title and test your camera', '🎥'],
+                  ['2', 'Click Go Live — a Firestore session is created and Agora broadcast starts', '🔴'],
+                  ['3', 'Members join from the app and see your stream', '👥'],
+                  ['4', 'Members can join the waiting room for a private consultation', '🕊'],
+                  ['5', 'Admit members one by one for a private 2-way video call', '🤝'],
+                  ['6', 'End the session when you\'re done', '✓'],
+                ].map(([num, text, icon]) => (
+                  <div key={num} className={styles.infoStep}>
+                    <div className={styles.infoStepNum}>{num}</div>
+                    <div>
+                      <span className={styles.infoStepIcon}>{icon}</span>
+                      <span className={styles.infoStepText}>{text}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
-        {toast && <div className={styles.toast}>{toast}</div>}
-      </main>
+        {/* ── LIVE phase ──────────────────────────────────── */}
+        {phase === 'live' && (
+          <div className={styles.liveLayout}>
+
+            {/* Left: video + controls */}
+            <div className={styles.videoCol}>
+              {/* Rabbi's self-view (always shown) */}
+              <div className={styles.videoWrapper}>
+                <div id="live-container" className={styles.liveVideo} />
+                <div className={styles.videoTopLeft}>
+                  <span className={styles.liveTag}>
+                    {currentConsult ? '🤝 CONSULTATION' : '● LIVE'}
+                  </span>
+                  <span className={styles.elapsedTag}>{formatDuration(elapsed)}</span>
+                </div>
+                <div className={styles.videoBottomRight}>
+                  <span className={styles.viewerTag}>👁 {viewerCount}</span>
+                </div>
+                {camOff && (
+                  <div className={styles.camOffOverlay}>
+                    <span>📷 Camera paused</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Broadcast info */}
+              <div className={styles.broadcastMeta}>
+                <div className={styles.broadcastTitle}>{title}</div>
+                <div className={styles.broadcastChannel}>
+                  {currentConsult ? `📡 ${channelName}-pvt (private)` : `📡 ${channelName}`}
+                </div>
+              </div>
+
+              {/* Controls row */}
+              <div className={styles.controls}>
+                <button
+                  className={`${styles.controlBtn} ${micMuted ? styles.controlBtnOff : ''}`}
+                  onClick={toggleMic}
+                >
+                  {micMuted ? '🔇 Unmute' : '🎙 Mute'}
+                </button>
+                <button
+                  className={`${styles.controlBtn} ${camOff ? styles.controlBtnOff : ''}`}
+                  onClick={toggleCam}
+                >
+                  {camOff ? '📷 Resume Cam' : '📹 Pause Cam'}
+                </button>
+                <button className={styles.btnEndSession} onClick={endSession}>
+                  ■ End Session
+                </button>
+              </div>
+
+              {/* Consultation panel — shown when a user is admitted */}
+              {currentConsult && (
+                <div className={styles.consultPanel}>
+                  {/* Banner row: name + timer + end button */}
+                  <div className={styles.consultBanner}>
+                    <div className={styles.consultLeft}>
+                      <span className={styles.consultDot} />
+                      <div>
+                        <div className={styles.consultLabel}>Private consultation — broadcast paused</div>
+                        <div className={styles.consultName}>{currentConsult.userName}</div>
+                      </div>
+                    </div>
+                    <div className={styles.consultRight}>
+                      <div className={`${styles.consultTimer} ${consultTimeLeft <= 60 ? styles.consultTimerUrgent : ''}`}>
+                        {formatDuration(consultTimeLeft)}
+                      </div>
+                      <button className={styles.btnEndConsult} onClick={endConsultation}>
+                        End
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* App user's remote video */}
+                  <div className={styles.consultVideoRow}>
+                    <div className={styles.consultVideoBox}>
+                      <div id="consult-remote-container" className={styles.consultRemoteVideo} />
+                      {consultRemoteUid === null && (
+                        <div className={styles.consultVideoPlaceholder}>
+                          <span>Waiting for {currentConsult.userName} to connect...</span>
+                        </div>
+                      )}
+                      <div className={styles.consultVideoLabel}>{currentConsult.userName}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right: waiting room */}
+            <div className={styles.waitingCol}>
+              <div className={styles.waitingCard}>
+                <div className={styles.waitingHeader}>
+                  <span className={styles.waitingTitle}>👥 Waiting Room</span>
+                  <span className={styles.waitingBadge}>{waitingUsers.length}</span>
+                </div>
+
+                {waitingRoom.length === 0 ? (
+                  <div className={styles.emptyWaiting}>
+                    <span className={styles.emptyIcon}>🕊</span>
+                    <p>No one in the queue yet</p>
+                    <p className={styles.emptySub}>Members can join from the mobile app</p>
+                  </div>
+                ) : (
+                  <div className={styles.waitingList}>
+                    {waitingRoom.map((entry, idx) => (
+                      <div
+                        key={entry.id}
+                        className={`${styles.waitingEntry}
+                          ${entry.status === 'in-session' ? styles.entryInSession : ''}
+                          ${entry.status === 'done'       ? styles.entryDone       : ''}
+                        `}
+                      >
+                        <div className={styles.entryLeft}>
+                          <div className={styles.entryPos}>{idx + 1}</div>
+                          <div>
+                            <div className={styles.entryName}>{entry.userName}</div>
+                            <div className={styles.entryMeta}>
+                              Joined {timeAgo(entry.joinedAt)}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={styles.entryRight}>
+                          {entry.status === 'waiting' && (
+                            <button
+                              className={styles.btnAdmit}
+                              onClick={() => admitUser(entry)}
+                            >
+                              Admit
+                            </button>
+                          )}
+                          {entry.status === 'in-session' && (
+                            <span className={styles.inSessionTag}>● In session</span>
+                          )}
+                          {entry.status === 'done' && (
+                            <span className={styles.doneTag}>✓ Done</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {doneUsers.length > 0 && (
+                  <div className={styles.waitingFooter}>
+                    {doneUsers.length} consultation{doneUsers.length > 1 ? 's' : ''} completed today
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ENDING phase ────────────────────────────────── */}
+        {phase === 'ending' && (
+          <div className={styles.endingView}>
+            <div className={styles.endingCard}>
+              <div className={styles.endingSpinner} />
+              <p className={styles.endingText}>Ending session…</p>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {toast && <div className={styles.toast}>{toast}</div>}
+    </main>
   )
 }

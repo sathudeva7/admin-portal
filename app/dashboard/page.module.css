@@ -578,3 +578,135 @@
   word-break: break-word;
   font-family: 'DM Sans', sans-serif;
 }
+
+/* ─── Mobile responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quickActions {
+    grid-template-columns: 1fr;
+  }
+
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+
+  .notifForm {
+    flex-direction: column;
+  }
+
+  .notifPreview {
+    width: 100%;
+    max-width: 200px;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 14px 16px 14px 60px;
+  }
+
+  .topbarActions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .btnUpload,
+  .btnNotif,
+  .btnLive,
+  .btnLogout {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .statsRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statCard {
+    padding: 18px;
+  }
+
+  .statValue {
+    font-size: 32px;
+  }
+
+  .quickActions {
+    gap: 12px;
+  }
+
+  .qaUpload,
+  .qaNotif,
+  .qaLive {
+    padding: 16px 18px;
+  }
+
+  .qaIcon {
+    font-size: 24px;
+  }
+
+  .qaTitle {
+    font-size: 14px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .panelHeader {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .escalationHeader {
+    flex-wrap: wrap;
+  }
+
+  .escalationName {
+    white-space: normal;
+  }
+
+  .expandBtn {
+    width: 100%;
+    text-align: right;
+  }
+
+  .sendToRow {
+    flex-direction: column;
+  }
+
+  .sendToBtn {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 22px;
+  }
+
+  .topbarActions {
+    flex-direction: column;
+  }
+
+  .btnUpload,
+  .btnNotif,
+  .btnLive,
+  .btnLogout {
+    flex: none;
+    width: 100%;
+  }
+}

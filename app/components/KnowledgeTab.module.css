@@ -186,3 +186,52 @@
   color: var(--muted);
   font-size: 13px;
 }
+
+/* ─── Mobile responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .statMini {
+    padding: 12px;
+  }
+
+  .statNum {
+    font-size: 24px;
+  }
+
+  .filterRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .searchInput {
+    max-width: none;
+  }
+
+  .select {
+    max-width: none;
+  }
+
+  .entryCard {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .entryActions {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .statNum {
+    font-size: 20px;
+  }
+}

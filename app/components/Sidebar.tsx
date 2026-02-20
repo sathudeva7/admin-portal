@@ -30,12 +30,22 @@ const PATH_TO_NAV: Record<string, string> = {
   '/community':        'Community',
   '/knowledge-base':   'AI Knowledge Base',
   '/go-live':          'Live Sessions',
+  '/donations':        'Donations',
   '/admin-management': 'Admin Management',
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean
+  onClose?: () => void
+}
+
+export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname()
   const { role, displayName } = useAdminAuth()
+
+  const handleNavClick = () => {
+    onClose?.()
+  }
 
   const activeNav = PATH_TO_NAV[pathname] ?? ''
   const isSuperAdmin = role === 'super_admin'
@@ -59,7 +69,7 @@ export default function Sidebar() {
       { icon: '📺', label: 'Live Sessions', href: '/go-live' },
     ]},
     { section: 'Finance', items: [
-      { icon: '💳', label: 'Donations', href: '#' },
+      { icon: '💳', label: 'Donations', href: '/donations' },
       { icon: '⚙️', label: 'Settings',  href: '#' },
     ]},
     ...(isSuperAdmin ? [{
@@ -69,7 +79,16 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
+      {onClose && (
+        <button
+          className={styles.closeBtn}
+          onClick={onClose}
+          aria-label="Close menu"
+        >
+          ✕
+        </button>
+      )}
       <div className={styles.logo}>
         <div className={styles.logoTop}>
           <span style={{ fontSize: 20 }}>🔥</span>
@@ -89,6 +108,7 @@ export default function Sidebar() {
                 key={item.label}
                 href={item.href}
                 className={`${styles.navItem} ${item.label === activeNav ? styles.active : ''}`}
+                onClick={handleNavClick}
               >
                 <span>{item.icon}</span>
                 <span>{item.label}</span>

@@ -542,3 +542,118 @@
 .confirmDeleteBtn:hover {
   opacity: 0.88;
 }
+
+/* ─── Mobile responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .grid,
+  .skeletonGrid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px 14px 60px;
+  }
+
+  .topbarRight {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .btnUpload {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .statsBar {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .statItem {
+    font-size: 12px;
+  }
+
+  .grid,
+  .skeletonGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .cardBody {
+    padding: 12px 14px;
+  }
+
+  .cardActions {
+    opacity: 1;
+  }
+
+  .centeredMsg {
+    padding: 48px 24px;
+  }
+
+  .emptyIcon {
+    font-size: 42px;
+  }
+
+  .emptyTitle {
+    font-size: 18px;
+  }
+
+  .confirmOverlay {
+    padding: 16px;
+  }
+
+  .confirmModal {
+    padding: 24px 20px 20px;
+  }
+
+  .confirmMsg {
+    max-width: 100%;
+  }
+
+  .confirmActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .confirmCancelBtn,
+  .confirmDeleteBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 22px;
+  }
+
+  .playBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+}
+
+/* Show card actions on touch devices (no hover) */
+@media (hover: none) {
+  .cardActions {
+    opacity: 1;
+  }
+}

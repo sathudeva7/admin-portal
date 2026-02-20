@@ -646,3 +646,155 @@
   from { opacity: 0; transform: translateX(-50%) translateY(10px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+/* ─── Mobile responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .splitActive {
+    grid-template-columns: 1fr 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px 14px 60px;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .statCard {
+    padding: 14px 16px;
+  }
+
+  .statValue {
+    font-size: 28px;
+  }
+
+  .splitView {
+    grid-template-columns: 1fr;
+  }
+
+  .splitActive {
+    grid-template-columns: 1fr;
+  }
+
+  .splitActive .postsPanel {
+    display: none;
+  }
+
+  .splitActive .repliesPanel {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    border-radius: 0;
+    max-height: none;
+    box-shadow: none;
+  }
+
+  .splitActive .repliesHeader {
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
+
+  .filterBar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+  }
+
+  .filterTabs {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .filterTab {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .searchInput {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .postList {
+    padding: 10px 12px;
+  }
+
+  .postCard {
+    padding: 12px;
+  }
+
+  .postHeader {
+    flex-wrap: wrap;
+  }
+
+  .postActions {
+    margin-left: auto;
+  }
+
+  .replyContent {
+    margin-left: 0;
+  }
+
+  .skeletonReplyContent {
+    margin-left: 0;
+  }
+
+  .modalOverlay {
+    padding: 16px;
+  }
+
+  .modal {
+    padding: 24px 20px;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .modalCancel,
+  .modalDelete {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    transform: none;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 22px;
+  }
+
+  .pageSub {
+    font-size: 11px;
+  }
+
+  .statsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .statValue {
+    font-size: 24px;
+  }
+}
