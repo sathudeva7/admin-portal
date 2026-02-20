@@ -1,29 +1,50 @@
 'use client'
 
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useAdminAuth } from '../lib/useAdminAuth'
 import styles from './Sidebar.module.css'
 
-interface SidebarProps {
-  activeNav?: string
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Super Admin',
+  moderator:   'Moderator',
+  rabbi:       'Rabbi',
 }
 
 interface NavItem {
-  icon: string
-  label: string
-  href: string
+  icon:   string
+  label:  string
+  href:   string
   badge?: number
 }
 
 interface NavGroup {
   section: string
-  items: NavItem[]
+  items:   NavItem[]
 }
 
-export default function Sidebar({ activeNav = 'AI Knowledge Base' }: SidebarProps) {
-  const navItems: NavGroup[] = [
+const PATH_TO_NAV: Record<string, string> = {
+  '/dashboard':        'Dashboard',
+  '/videos':           'Videos',
+  '/users':            'Users',
+  '/community':        'Community',
+  '/knowledge-base':   'AI Knowledge Base',
+  '/go-live':          'Live Sessions',
+  '/admin-management': 'Admin Management',
+}
+
+export default function Sidebar() {
+  const pathname = usePathname()
+  const { role, displayName } = useAdminAuth()
+
+  const activeNav = PATH_TO_NAV[pathname] ?? ''
+  const isSuperAdmin = role === 'super_admin'
+
+  const navGroups: NavGroup[] = [
     { section: 'Main', items: [
       { icon: '📊', label: 'Dashboard',  href: '/dashboard' },
       { icon: '📹', label: 'Videos',     href: '/videos' },
-      { icon: '👥', label: 'Users',      href: '#' },
+      { icon: '👥', label: 'Users',      href: '/users' },
     ]},
     { section: 'Moderation', items: [
       { icon: '💬', label: 'Community',  href: '/community', badge: 3 },
@@ -34,13 +55,17 @@ export default function Sidebar({ activeNav = 'AI Knowledge Base' }: SidebarProp
       { icon: '⚙️', label: 'AI Coach Settings', href: '#' },
     ]},
     { section: 'Broadcast', items: [
-      { icon: '📢', label: 'Notifications',  href: '#' },
-      { icon: '📺', label: 'Live Sessions',  href: '/go-live' },
+      { icon: '📢', label: 'Notifications', href: '#' },
+      { icon: '📺', label: 'Live Sessions', href: '/go-live' },
     ]},
     { section: 'Finance', items: [
       { icon: '💳', label: 'Donations', href: '#' },
       { icon: '⚙️', label: 'Settings',  href: '#' },
     ]},
+    ...(isSuperAdmin ? [{
+      section: 'System',
+      items: [{ icon: '🛡️', label: 'Admin Management', href: '/admin-management' }],
+    }] : []),
   ]
 
   return (
@@ -56,11 +81,11 @@ export default function Sidebar({ activeNav = 'AI Knowledge Base' }: SidebarProp
       </div>
 
       <nav className={styles.nav}>
-        {navItems.map((group) => (
+        {navGroups.map((group) => (
           <div key={group.section}>
             <div className={styles.navSection}>{group.section}</div>
             {group.items.map((item) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 className={`${styles.navItem} ${item.label === activeNav ? styles.active : ''}`}
@@ -68,7 +93,7 @@ export default function Sidebar({ activeNav = 'AI Knowledge Base' }: SidebarProp
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
                 {item.badge && <span className={styles.badge}>{item.badge}</span>}
-              </a>
+              </Link>
             ))}
           </div>
         ))}
@@ -77,8 +102,8 @@ export default function Sidebar({ activeNav = 'AI Knowledge Base' }: SidebarProp
       <div className={styles.user}>
         <div className={styles.avatar}>👤</div>
         <div>
-          <div className={styles.username}>Rabbi Landau</div>
-          <div className={styles.role}>Super Admin</div>
+          <div className={styles.username}>{displayName ?? '—'}</div>
+          <div className={styles.role}>{role ? ROLE_LABELS[role] : ''}</div>
         </div>
       </div>
     </aside>

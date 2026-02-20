@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { useAdminAuth } from '../lib/useAdminAuth'
-import Sidebar from '../components/Sidebar'
 import UploadVideoModal from '../components/UploadVideoModal'
 import styles from './page.module.css'
 
@@ -43,7 +42,7 @@ const ESCALATIONS = [
 
 export default function DashboardPage() {
   const router = useRouter()
-  const ready = useAdminAuth()
+  const { ready } = useAdminAuth()
 
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [expandedId, setExpandedId]   = useState<number | null>(1)
@@ -60,9 +59,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className={styles.layout}>
-      <Sidebar activeNav="Dashboard" />
-
+    <>
       <main className={styles.main}>
         {/* Topbar */}
         <div className={styles.topbar}>
@@ -246,6 +243,6 @@ export default function DashboardPage() {
       {showUploadModal && (
         <UploadVideoModal onClose={() => setShowUploadModal(false)} />
       )}
-    </div>
+    </>
   )
 }

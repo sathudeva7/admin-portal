@@ -16,17 +16,19 @@ export default function UploadVideoModal({ onClose, onSuccess }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const [stage, setStage]         = useState<Stage>('drop')
-  const [dragging, setDragging]   = useState(false)
-  const [progress, setProgress]   = useState(0)
-  const [assetId, setAssetId]     = useState<string | null>(null)
-  const [playbackId, setPlaybackId] = useState<string | null>(null)
-  const [muxDuration, setMuxDuration] = useState<string | null>(null)
-  const [error, setError]         = useState<string | null>(null)
-  const [title, setTitle]         = useState('')
-  const [description, setDescription] = useState('')
-  const [topicInput, setTopicInput] = useState('')
-  const [topics, setTopics]       = useState<string[]>([])
+  const [stage, setStage]               = useState<Stage>('drop')
+  const [dragging, setDragging]         = useState(false)
+  const [progress, setProgress]         = useState(0)
+  const [assetId, setAssetId]           = useState<string | null>(null)
+  const [playbackId, setPlaybackId]     = useState<string | null>(null)
+  const [muxDuration, setMuxDuration]   = useState<string | null>(null)
+  const [error, setError]               = useState<string | null>(null)
+  const [title, setTitle]               = useState('')
+  const [description, setDescription]   = useState('')
+  const [topicInput, setTopicInput]     = useState('')
+  const [topics, setTopics]             = useState<string[]>([])
+  const [publishMode, setPublishMode]   = useState<'now' | 'schedule'>('now')
+  const [scheduledAt, setScheduledAt]   = useState('')
 
   const pollUntilReady = useCallback((uid: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -106,13 +108,15 @@ export default function UploadVideoModal({ onClose, onSuccess }: Props) {
   const handleSave = async () => {
     if (!title.trim()) { setError('Title is required'); return }
     if (!playbackId)   { setError('Missing playback ID — please try again'); return }
+    if (publishMode === 'schedule' && !scheduledAt) { setError('Please select a scheduled date/time'); return }
     setError(null)
     setStage('saving')
     try {
       const postedDate = new Date().toLocaleDateString('en-US', {
         month: 'short', day: 'numeric', year: 'numeric',
       })
-      await addDoc(collection(db, 'videos'), {
+
+      const basePayload = {
         title:         title.trim(),
         description:   description.trim(),
         topics,
@@ -120,11 +124,27 @@ export default function UploadVideoModal({ onClose, onSuccess }: Props) {
         muxAssetId:    assetId,
         duration:      muxDuration ?? '',
         viewCount:     0,
-        isNew:         true,
         postedDate,
         createdAt:     serverTimestamp(),
-        publishedAt:   serverTimestamp(),
-      })
+      }
+
+      if (publishMode === 'now') {
+        await addDoc(collection(db, 'videos'), {
+          ...basePayload,
+          publishStatus: 'published',
+          isNew:         true,
+          publishedAt:   serverTimestamp(),
+        })
+      } else {
+        await addDoc(collection(db, 'videos'), {
+          ...basePayload,
+          publishStatus:        'scheduled',
+          isNew:                false,
+          scheduledPublishAt:   scheduledAt,
+          publishedAt:          null,
+        })
+      }
+
       setStage('done')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to save video')
@@ -241,6 +261,36 @@ export default function UploadVideoModal({ onClose, onSuccess }: Props) {
               )}
             </div>
 
+            {/* ── When to Publish? ── */}
+            <div className={styles.formRow}>
+              <label className={styles.label}>When to Publish?</label>
+              <div className={styles.publishToggle}>
+                <button
+                  type="button"
+                  className={`${styles.toggleBtn} ${publishMode === 'now' ? styles.toggleActive : ''}`}
+                  onClick={() => setPublishMode('now')}
+                >
+                  Publish Now
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.toggleBtn} ${publishMode === 'schedule' ? styles.toggleActive : ''}`}
+                  onClick={() => setPublishMode('schedule')}
+                >
+                  Schedule
+                </button>
+              </div>
+              {publishMode === 'schedule' && (
+                <input
+                  type="datetime-local"
+                  className={styles.input}
+                  style={{ marginTop: 8 }}
+                  value={scheduledAt}
+                  onChange={(e) => setScheduledAt(e.target.value)}
+                />
+              )}
+            </div>
+
             {muxDuration && (
               <div className={styles.formRow}>
                 <label className={styles.label}>Duration (from Mux)</label>
@@ -257,7 +307,10 @@ export default function UploadVideoModal({ onClose, onSuccess }: Props) {
                 onClick={handleSave}
                 disabled={stage === 'saving'}
               >
-                {stage === 'saving' ? 'Publishing…' : '🚀 Publish Video'}
+                {stage === 'saving'
+                  ? 'Saving…'
+                  : publishMode === 'schedule' ? '⏰ Schedule Video' : '🚀 Publish Video'
+                }
               </button>
             </div>
           </div>
@@ -266,10 +319,15 @@ export default function UploadVideoModal({ onClose, onSuccess }: Props) {
         {/* ── Done ── */}
         {stage === 'done' && (
           <div className={styles.centeredPane}>
-            <div className={styles.resultIcon}>✅</div>
-            <div className={styles.paneTitle}>Video Published!</div>
+            <div className={styles.resultIcon}>{publishMode === 'schedule' ? '⏰' : '✅'}</div>
+            <div className={styles.paneTitle}>
+              {publishMode === 'schedule' ? 'Video Scheduled!' : 'Video Published!'}
+            </div>
             <div className={styles.paneSub}>
-              Your teaching is now live in the Rivnitz app.
+              {publishMode === 'schedule' && scheduledAt
+                ? `Scheduled for ${new Date(scheduledAt).toLocaleString()}`
+                : 'Your teaching is now live in the Rivnitz app.'
+              }
             </div>
             <button className={styles.publishBtn} onClick={() => { onSuccess?.(); handleClose() }}>
               Close

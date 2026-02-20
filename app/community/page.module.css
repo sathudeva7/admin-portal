@@ -486,6 +486,68 @@
   font-size: 13px;
 }
 
+/* ─── Skeleton posts ─────────────────────────────────────────── */
+.skeletonPostCard {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeletonPostHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skeletonAvatarCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeletonPostMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.skeletonAuthorLine { height: 13px; width: 120px; border-radius: 6px; }
+.skeletonTimeLine   { height: 11px; width: 72px;  border-radius: 6px; }
+.skeletonContent    { height: 12px; width: 100%;  border-radius: 6px; }
+.skeletonContentSm  { height: 12px; width: 68%;   border-radius: 6px; }
+
+/* ─── Skeleton replies ───────────────────────────────────────── */
+.skeletonReplyCard {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonReplyHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeletonReplyAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeletonReplyContent { height: 12px; width: 80%; margin-left: 36px; border-radius: 6px; }
+
 /* ─── Delete confirm modal ───────────────────────────────────── */
 .modalOverlay {
   position: fixed;

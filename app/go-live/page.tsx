@@ -7,11 +7,21 @@ import {
   collection, doc, addDoc, updateDoc,
   onSnapshot, query, orderBy, serverTimestamp,
 } from 'firebase/firestore'
-import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng'
+import type AgoraRTCType, { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng'
 import { auth, db } from '../lib/firebase'
 import { useAdminAuth } from '../lib/useAdminAuth'
-import Sidebar from '../components/Sidebar'
 import styles from './page.module.css'
+
+// Loaded once on first use — keeps Agora out of the initial bundle
+let _AgoraRTC: typeof AgoraRTCType | null = null
+async function loadAgoraRTC(): Promise<typeof AgoraRTCType> {
+  if (!_AgoraRTC) {
+    const mod = await import('agora-rtc-sdk-ng')
+    _AgoraRTC = mod.default
+    _AgoraRTC.setLogLevel(3)
+  }
+  return _AgoraRTC
+}
 
 const AGORA_APP_ID = process.env.NEXT_PUBLIC_AGORA_APP_ID!
 
@@ -43,7 +53,7 @@ function formatDuration(secs: number): string {
 
 export default function GoLivePage() {
   const router  = useRouter()
-  const ready   = useAdminAuth()
+  const { ready } = useAdminAuth()
 
   // Phase + session
   const [phase, setPhase]         = useState<Phase>('setup')
@@ -117,8 +127,7 @@ export default function GoLivePage() {
     setPreviewLoading(true)
     setError('')
     try {
-      const { default: AgoraRTC } = await import('agora-rtc-sdk-ng')
-      AgoraRTC.setLogLevel(3)
+      const AgoraRTC = await loadAgoraRTC()
       const track = await AgoraRTC.createCameraVideoTrack({ encoderConfig: '720p' })
       videoRef.current = track
       // video rendered into #preview-container by the useEffect after phase change
@@ -153,9 +162,7 @@ export default function GoLivePage() {
       const { token } = await tokenRes.json()
 
       // ── 2. Set up Agora client ─────────────────────────────────
-      const { default: AgoraRTC } = await import('agora-rtc-sdk-ng')
-      AgoraRTC.setLogLevel(3)
-
+      const AgoraRTC = await loadAgoraRTC()
       const client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' })
       clientRef.current = client
       await client.setClientRole('host')
@@ -284,10 +291,7 @@ export default function GoLivePage() {
 
   // ── Render ────────────────────────────────────────────────────
   return (
-    <div className={styles.layout}>
-      <Sidebar activeNav="Live Sessions" />
-
-      <main className={styles.main}>
+    <main className={styles.main}>
         {/* Topbar */}
         <div className={styles.topbar}>
           <div>
@@ -544,6 +548,5 @@ export default function GoLivePage() {
 
         {toast && <div className={styles.toast}>{toast}</div>}
       </main>
-    </div>
   )
 }

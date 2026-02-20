@@ -9,7 +9,6 @@ import {
 } from 'firebase/firestore'
 import { auth, db } from '../lib/firebase'
 import { useAdminAuth } from '../lib/useAdminAuth'
-import Sidebar from '../components/Sidebar'
 import styles from './page.module.css'
 
 interface Post {
@@ -51,7 +50,7 @@ function avatarColor(name: string): string {
 
 export default function CommunityPage() {
   const router = useRouter()
-  const ready = useAdminAuth()
+  const { ready } = useAdminAuth()
 
   const [posts, setPosts]               = useState<Post[]>([])
   const [loading, setLoading]           = useState(true)
@@ -140,10 +139,7 @@ export default function CommunityPage() {
   const uniqueAuthors    = new Set(posts.map((p) => p.authorId)).size
 
   return (
-    <div className={styles.layout}>
-      <Sidebar activeNav="Community" />
-
-      <main className={styles.main}>
+    <main className={styles.main}>
         {/* Topbar */}
         <div className={styles.topbar}>
           <div>
@@ -208,7 +204,19 @@ export default function CommunityPage() {
               {/* Post list */}
               <div className={styles.postList}>
                 {loading ? (
-                  <div className={styles.empty}>Loading posts…</div>
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className={styles.skeletonPostCard}>
+                      <div className={styles.skeletonPostHeader}>
+                        <div className={`skeleton ${styles.skeletonAvatarCircle}`} />
+                        <div className={styles.skeletonPostMeta}>
+                          <div className={`skeleton ${styles.skeletonAuthorLine}`} />
+                          <div className={`skeleton ${styles.skeletonTimeLine}`} />
+                        </div>
+                      </div>
+                      <div className={`skeleton ${styles.skeletonContent}`} />
+                      <div className={`skeleton ${styles.skeletonContentSm}`} />
+                    </div>
+                  ))
                 ) : filtered.length === 0 ? (
                   <div className={styles.empty}>No posts found</div>
                 ) : (
@@ -295,7 +303,18 @@ export default function CommunityPage() {
                 {/* Replies list */}
                 <div className={styles.repliesList}>
                   {repliesLoading ? (
-                    <div className={styles.empty}>Loading replies…</div>
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className={styles.skeletonReplyCard}>
+                        <div className={styles.skeletonReplyHeader}>
+                          <div className={`skeleton ${styles.skeletonReplyAvatar}`} />
+                          <div className={styles.skeletonPostMeta}>
+                            <div className={`skeleton ${styles.skeletonAuthorLine}`} />
+                            <div className={`skeleton ${styles.skeletonTimeLine}`} />
+                          </div>
+                        </div>
+                        <div className={`skeleton ${styles.skeletonReplyContent}`} />
+                      </div>
+                    ))
                   ) : replies.length === 0 ? (
                     <div className={styles.emptyReplies}>No replies yet on this post</div>
                   ) : (
@@ -349,6 +368,5 @@ export default function CommunityPage() {
         {/* Toast */}
         {toast && <div className={styles.toast}>✓ {toast}</div>}
       </main>
-    </div>
   )
 }

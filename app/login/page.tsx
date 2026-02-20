@@ -2,7 +2,6 @@
 
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db, COLLECTIONS } from '../lib/firebase'
@@ -99,10 +98,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className={styles.footer}>
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className={styles.link}>Create one</Link>
-        </p>
       </div>
     </div>
   )

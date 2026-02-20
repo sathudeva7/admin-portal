@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { useAdminAuth } from '../lib/useAdminAuth'
-import Sidebar from '../components/Sidebar'
 import Toast from '../components/Toast'
 import KnowledgeTab from '../components/KnowledgeTab'
 import SystemPromptTab from '../components/SystemPromptTab'
@@ -27,7 +26,7 @@ const TABS: { id: TabId; label: string }[] = [
 
 export default function AIKnowledgeBase() {
   const router = useRouter()
-  const ready = useAdminAuth()
+  const { ready } = useAdminAuth()
   const [activeTab, setActiveTab] = useState<TabId>('knowledge')
   const [toast, setToast] = useState({ visible: false, message: '' })
   const [modalOpen, setModalOpen] = useState(false)
@@ -53,9 +52,7 @@ export default function AIKnowledgeBase() {
   if (!ready) return null
 
   return (
-    <div className={styles.layout}>
-      <Sidebar activeNav="AI Knowledge Base" />
-
+    <>
       <main className={styles.main}>
         <div className={styles.topbar}>
           <div>
@@ -104,6 +101,6 @@ export default function AIKnowledgeBase() {
       />
 
       <Toast message={toast.message} visible={toast.visible} onHide={hideToast} />
-    </div>
+    </>
   )
 }
