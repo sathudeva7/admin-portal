@@ -32,9 +32,10 @@ function getDb() {
     const rawKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY
     if (!rawKey) throw new Error('FIREBASE_ADMIN_PRIVATE_KEY env var is not set')
 
-    const privateKey = rawKey.includes('\\n')
-      ? rawKey.replace(/\\n/g, '\n')
-      : rawKey
+    const privateKey = rawKey
+      .replace(/\\n/g, '\n')       // escaped \n → real newline
+      .replace(/^["']|["']$/g, '') // strip surrounding quotes if present
+      .trim()
 
     initializeApp({
       credential: cert({
