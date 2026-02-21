@@ -30,6 +30,7 @@ const PATH_TO_NAV: Record<string, string> = {
   '/community':        'Community',
   '/knowledge-base':   'AI Knowledge Base',
   '/go-live':          'Live Sessions',
+  '/notifications':    'Notifications',
   '/donations':        'Donations',
   '/admin-management': 'Admin Management',
 }
@@ -65,7 +66,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       { icon: '⚙️', label: 'AI Coach Settings', href: '#' },
     ]},
     { section: 'Broadcast', items: [
-      { icon: '📢', label: 'Notifications', href: '#' },
+      { icon: '📢', label: 'Notifications', href: '/notifications' },
       { icon: '📺', label: 'Live Sessions', href: '/go-live' },
     ]},
     { section: 'Finance', items: [

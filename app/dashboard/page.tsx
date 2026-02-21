@@ -66,7 +66,7 @@ export default function DashboardPage() {
           <h1 className={styles.pageTitle}>Dashboard</h1>
           <div className={styles.topbarActions}>
             <button className={styles.btnUpload} onClick={() => setShowUploadModal(true)}>🎬 Upload Video</button>
-            <button className={styles.btnNotif}>📣 Send Notification</button>
+            <button className={styles.btnNotif} onClick={() => router.push('/notifications')}>📣 Send Notification</button>
             <button className={styles.btnLive} onClick={() => router.push('/go-live')}>📺 Go Live</button>
             <button className={styles.btnLogout} onClick={handleLogout}>Sign Out</button>
           </div>
@@ -97,7 +97,7 @@ export default function DashboardPage() {
                 <div className={styles.qaSub}>Post a new teaching</div>
               </div>
             </button>
-            <button className={styles.qaNotif}>
+            <button className={styles.qaNotif} onClick={() => router.push('/notifications')}>
               <span className={styles.qaIcon}>📣</span>
               <div>
                 <div className={styles.qaTitle}>Send Notification</div>
